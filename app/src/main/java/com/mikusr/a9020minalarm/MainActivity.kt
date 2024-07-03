@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -65,6 +66,13 @@ fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit) {
     val alarmOptions =
         listOf(20) + (1..8).map { it * 90 } // 20 min + 90 min increments up to 12 hours
 
+    val currentTime by produceState(initialValue = Calendar.getInstance()) {
+        while (true) {
+            delay(1000) // Update every second
+            value = Calendar.getInstance()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,8 +80,14 @@ fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Set Alarm Delay",
+            "Current Time: ${formatTime(currentTime)}",
             style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            "Set Alarm Delay",
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -102,6 +116,7 @@ fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit) {
                     minutes = minutes,
                     delayHours = delayHours,
                     delayMinutes = delayMinutes,
+                    currentTime = currentTime,
                     onSetAlarm = onSetAlarm
                 )
             }
@@ -138,10 +153,11 @@ fun AlarmOptionButton(
     minutes: Int,
     delayHours: Int,
     delayMinutes: Int,
+    currentTime: Calendar,
     onSetAlarm: (Int, Int, Int) -> Unit
 ) {
-    val targetTime = remember(minutes, delayHours, delayMinutes) {
-        calculateTargetTime(minutes, delayHours, delayMinutes)
+    val targetTime = remember(minutes, delayHours, delayMinutes, currentTime) {
+        calculateTargetTime(currentTime, minutes, delayHours, delayMinutes)
     }
 
     Button(
@@ -154,9 +170,18 @@ fun AlarmOptionButton(
     }
 }
 
-fun calculateTargetTime(minutes: Int, delayHours: Int, delayMinutes: Int): String {
-    val calendar = Calendar.getInstance()
+fun calculateTargetTime(
+    currentTime: Calendar,
+    minutes: Int,
+    delayHours: Int,
+    delayMinutes: Int
+): String {
+    val calendar = currentTime.clone() as Calendar
     calendar.add(Calendar.MINUTE, minutes + delayHours * 60 + delayMinutes)
-    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return formatTime(calendar)
+}
+
+fun formatTime(calendar: Calendar): String {
+    val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     return sdf.format(calendar.time)
 }
