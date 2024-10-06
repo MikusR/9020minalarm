@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.mikusr.a9020minalarm"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.mikusr.a9020minalarm"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 2
         versionName = "1.1"
 
@@ -47,6 +47,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    buildToolsVersion = "35.0.0"
     applicationVariants.all {
         val variant = this
         outputs.all {
