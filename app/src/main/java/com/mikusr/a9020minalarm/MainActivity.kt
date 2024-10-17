@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AlarmApp(::setAlarm)
+                    AlarmApp(::setAlarm, ::setAlarmAfterTime)
                 }
             }
         }
@@ -57,14 +57,39 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
     }
+
+    private fun setAlarmAfterTime(hours: Int, minutes: Int) {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.HOUR, hours)
+        calendar.add(Calendar.MINUTE, minutes)
+
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        val intent = Intent(AlarmClock.ACTION_SET_ALARM).apply {
+            putExtra(AlarmClock.EXTRA_HOUR, hour)
+            putExtra(AlarmClock.EXTRA_MINUTES, minute)
+            putExtra(
+                AlarmClock.EXTRA_MESSAGE,
+                "Alarm after ${hours}h ${minutes}m"
+            )
+            putExtra(AlarmClock.EXTRA_SKIP_UI, true)
+        }
+
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        }
+    }
 }
 
 @Composable
-fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit) {
+fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit, onSetAlarmAfterTime: (Int, Int) -> Unit) {
     var delayHours by remember { mutableStateOf(0) }
     var delayMinutes by remember { mutableStateOf(0) }
+    var afterHours by remember { mutableStateOf(0) }
+    var afterMinutes by remember { mutableStateOf(0) }
     val alarmOptions =
-        listOf(20) + (1..8).map { it * 90 } // 20 min + 90 min increments up to 12 hours
+        listOf(20) + (1..8).map { it * 90 } + listOf(480) // 20 min + 90 min increments up to 12 hours + 8 hours
 
     val currentTime by produceState(initialValue = Calendar.getInstance()) {
         while (true) {
@@ -108,6 +133,40 @@ fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit) {
                 onValueChange = { delayMinutes = it },
                 range = 0..59
             )
+        }
+
+        Text(
+            "Set Alarm After Time",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            TimeSelector(
+                label = "Hours",
+                value = afterHours,
+                onValueChange = { afterHours = it },
+                range = 0..23
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            TimeSelector(
+                label = "Minutes",
+                value = afterMinutes,
+                onValueChange = { afterMinutes = it },
+                range = 0..59
+            )
+        }
+
+        Button(
+            onClick = { onSetAlarmAfterTime(afterHours, afterMinutes) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text("Set Alarm After ${afterHours}h ${afterMinutes}m")
         }
 
         LazyColumn {
