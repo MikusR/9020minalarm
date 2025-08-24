@@ -84,10 +84,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AlarmApp(onSetAlarm: (Int, Int, Int) -> Unit, onSetAlarmAfterTime: (Int, Int) -> Unit) {
-    var delayHours by remember { mutableStateOf(0) }
-    var delayMinutes by remember { mutableStateOf(0) }
-    var afterHours by remember { mutableStateOf(0) }
-    var afterMinutes by remember { mutableStateOf(0) }
+    var delayHours by remember { mutableIntStateOf(0) }
+    var delayMinutes by remember { mutableIntStateOf(0) }
+    var afterHours by remember { mutableIntStateOf(0) }
+    var afterMinutes by remember { mutableIntStateOf(0) }
     val alarmOptions =
         listOf(20) + (1..8).map { it * 90 } + listOf(480) // 20 min + 90 min increments up to 12 hours + 8 hours
 
